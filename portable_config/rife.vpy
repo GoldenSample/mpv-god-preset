@@ -74,7 +74,15 @@ if 0 < src_fps < 32:
         cap = 4
     else:
         cap = 6
-    multi, fractional = pick_multi(src_fps, target, cap)
+    # Бюджет 8K@60: RIFE на 4K-кадрах + вывод 33 Мпикс не влезают в 5090 вместе -
+    # замер на 4K HDR даёт 46-49 fps презентации вместо 60 (рывки, задержанные
+    # кадры). На 60 Гц панелях с 4K+ контентом целимся в 30: лок 2:2, работы
+    # вдвое меньше, 3:2-джадера всё равно нет.
+    eff_target = target
+    if pixels > 2560 * 1440 and 56 <= target <= 62:
+        eff_target = target / 2
+
+    multi, fractional = pick_multi(src_fps, eff_target, cap)
 
     if multi is not None:
         orig_fmt = clip.format.id

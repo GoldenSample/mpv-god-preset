@@ -62,4 +62,12 @@ mp.add_key_binding("8", "smart-8k", function()
         return
     end
     switch_to("janai8k.vpy", "8K-апскейл (без уплавнялки)")
+
+    -- 4K-исходник + 60 Гц панель = 24 кадра на 60 Гц = 3:2-джадер.
+    -- Инференс 8K и уплавнялка вместе в бюджет не влезают (замер 17 Гц).
+    local w = mp.get_property_number("video-params/w", 0)
+    local dfps = mp.get_property_number("display-fps", 0)
+    if w > 2560 and dfps > 50 and dfps < 70 then
+        mp.osd_message("8K-апскейл: для ровной каденции переключи панель в 8K 24 Гц", 5)
+    end
 end)
