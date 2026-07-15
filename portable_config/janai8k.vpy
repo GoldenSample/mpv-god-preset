@@ -63,7 +63,7 @@ if clip.width <= 3840 and clip.height <= 2400:
     do_rife = (56 <= target <= 62 and 0 < src_fps < 32
                and clip.width * clip.height <= 2560 * 1440)
     if do_rife:
-        work = core.misc.SCDetect(work, threshold=0.14)
+        work = core.misc.SCDetect(work, threshold=0.08)
 
     work = core.std.RemoveFrameProps(work, props=["_ColorRange", "_Range", "_ChromaLocation"])
 

@@ -82,7 +82,7 @@ if do_upscale or do_rife:
     work = clip
     if do_rife:
         # детект смены сцены на исходнике (дёшево), пропсы едут дальше по графу
-        work = core.misc.SCDetect(work, threshold=0.14)
+        work = core.misc.SCDetect(work, threshold=0.08)
 
     # range и chromaloc фиксируются симметрично и независимо от пропов:
     # full-range проходит сквозь RGBH как out-of-range float без потерь

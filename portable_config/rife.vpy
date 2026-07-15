@@ -98,7 +98,7 @@ if 0 < src_fps < 32:
         matrix = "2020ncl" if clip.width >= 3200 else ("709" if clip.height >= 600 else "170m")
 
         # детект смены сцены, чтобы RIFE не морфил монтажные склейки
-        work = core.misc.SCDetect(clip, threshold=0.14)
+        work = core.misc.SCDetect(clip, threshold=0.08)
 
         # range и chromaloc фиксируются симметрично и независимо от пропов:
         # full-range проходит сквозь RGBH как out-of-range float без потерь
