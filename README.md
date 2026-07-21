@@ -1,8 +1,10 @@
-# mpv neural preset for RTX 5090 — a homebrew madVR Envy
+# mpv neural preset for RTX 5090: a homebrew madVR Envy
 
-A living-room video processor on your own hardware: judder-free film cadence
-(no 3:2 pulldown), RIFE frame interpolation, neural anime upscaling to 4K/8K,
-HDR passthrough. All real-time, all free, all on one GPU.
+The only repo you need to dive into the world of TensorRT 8K upscaling:
+a living-room video processor on your own hardware, with judder-free film
+cadence (no 3:2 pulldown), RIFE frame interpolation, neural anime upscaling
+to 4K/8K and HDR passthrough. All real-time, all free, all on one GPU.
+Every claim below is a measurement, every pitfall was paid for in drops.
 
 Built and battle-tested 2026-07-12 on an RTX 5090 (4K@144 display, later
 8K@60 + 4K@165). Cadence adapts to the panel automatically: film plays 6:6 on
