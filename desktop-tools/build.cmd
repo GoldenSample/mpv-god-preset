@@ -1,6 +1,6 @@
 @echo off
-REM Сборка кнопок панели. Никаких зависимостей: csc есть в любой Windows
-REM с .NET Framework (стоит из коробки).
+REM Build the desktop buttons. Zero dependencies: csc ships with every
+REM Windows that has .NET Framework (installed out of the box).
 set CSC=%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\csc.exe
 set OUT=%~dp0
 
@@ -8,11 +8,11 @@ set OUT=%~dp0
 "%CSC%" /nologo /target:winexe /out:"%OUT%HdrSwitch.exe" /r:System.Windows.Forms.dll "%OUT%HdrSwitch.cs"
 
 echo.
-echo Готово. Проверка:
-echo   SetDisplay.exe list          - режимы панели
-echo   HdrSwitch.exe status         - код 0=выкл 1=вкл 2=не поддерживается
+echo Done. Quick check:
+echo   SetDisplay.exe list          - panel modes
+echo   HdrSwitch.exe status         - exit code 0=off 1=on 2=unsupported
 echo.
-echo Ярлыки на рабочий стол делать с аргументами, например:
+echo Make desktop shortcuts with arguments, for example:
 echo   SetDisplay.exe 7680 4320 60
 echo   SetDisplay.exe 3840 2160 165
 echo   HdrSwitch.exe on  ^|  HdrSwitch.exe off

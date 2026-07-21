@@ -1,182 +1,203 @@
-# mpv «как божеенька» — нейро-пресет для RTX 5090
+# mpv neural preset for RTX 5090 — a homebrew madVR Envy
 
-Домашний видеопроцессор уровня madVR Envy на своём железе: идеальная киношная
-каденция без 3:2-джадера, RIFE-интерполяция кадров, нейро-апскейл аниме до 4K/8K,
-HDR-passthrough. Всё в реальном времени, всё бесплатно, всё на одной видеокарте.
+A living-room video processor on your own hardware: judder-free film cadence
+(no 3:2 pulldown), RIFE frame interpolation, neural anime upscaling to 4K/8K,
+HDR passthrough. All real-time, all free, all on one GPU.
 
-Собрано и обкатано 2026-07-12 на RTX 5090 (дисплей 4K@144, затем 8K@60 + 4K@165).
-Каденция подстраивается под панель сама: на 144 Гц кино идёт 6:6, на 165 - дробным
-множителем 82.5/55 с локом, на 8K@60 - ровно 60. Для справки: внутри madVR Envy
-Extreme MK2 стоит RTX 4080, и интерполяции кадров у Envy нет вообще.
+Built and battle-tested 2026-07-12 on an RTX 5090 (4K@144 display, later
+8K@60 + 4K@165). Cadence adapts to the panel automatically: film plays 6:6 on
+144 Hz, PAL/NTSC lock via fractional multipliers (82.5/55), 8K@60 gets an even
+60. For reference: a madVR Envy Extreme MK2 ships with an RTX 4080 inside, and
+Envy has no frame interpolation at all.
 
-## Кнопки (все режимы)
+## Hotkeys (all modes)
 
-| Кнопка | Режим | Для чего |
+| Key | Mode | What for |
 |---|---|---|
-| `e` | **Envy: апскейл + уплавнялка** | Основная кнопка для аниме. 1080p24 -> 4K 72fps одним графом |
-| `r` | **RIFE-уплавнялка** | Живое кино. Частота подбирается под дисплей сама (144/72/60, PAL/NTSC через дробный множитель) |
-| `u` | **AnimeJaNai 2x апскейл** | Аниме до 1080p -> 4K, кадры родные (24 fps как в кино) |
-| `8` | **8K-профиль** | Нейро-2x до 7680x4320 для 4K-исходников. На 60 Гц панелях кино дополнительно интерполируется до 30 fps (лок 2:2, без 3:2-джадера); полные 60 вместе с 8K-апскейлом в бюджет 5090 не влезают |
-| `b` | Дебандинг | Полосы в градиентах (стримы, старые энкоды) |
-| `TAB` | Статистика | fps, дропы, активные фильтры |
-| `s` | Скриншот | В `Pictures\mpv-shots` |
+| `e` | **Envy: upscale + interpolation** | The main anime button. 1080p24 -> 4K 72fps in a single graph |
+| `r` | **RIFE interpolation** | Live-action film. Output rate auto-locks to the display (144/72/60, PAL/NTSC via fractional multipliers) |
+| `u` | **AnimeJaNai 2x upscale** | Anime up to 1080p -> 4K, native frame rate (24 fps as shot) |
+| `8` | **8K profile** | Neural 2x to 7680x4320 for 4K sources. On 60 Hz panels film is additionally interpolated to 30 fps (2:2 lock, no 3:2 judder); full 60 plus the 8K upscale does not fit the 5090 budget |
+| `b` | Debanding | Gradient banding (streams, old encodes) |
+| `TAB` | Stats | fps, drops, active filters |
+| `s` | Screenshot | Saved to `Pictures\mpv-shots` |
 
-Кнопки режимов **эксклюзивны**: включение одного само снимает другой.
-Выключение — та же кнопка ещё раз. На HDR-контенте (PQ/HLG) апскейл-сети
-не включаются (обучены на SDR): `u` и `8` откажут с пояснением на экране,
-`e` автоматически деградирует в чистый RIFE.
+Mode keys are **exclusive**: enabling one automatically disables the other.
+Press the same key again to turn it off. On HDR content (PQ/HLG) the upscale
+networks stay off (they are trained on SDR): `u` and `8` refuse with an
+on-screen explanation, `e` gracefully degrades to pure RIFE.
 
-## Кнопки на рабочем столе (`desktop-tools/`)
+## Desktop buttons (`desktop-tools/`)
 
-Два крошечных exe без зависимостей, собираются `build.cmd` (csc из .NET
-Framework есть в любой Windows). Ярлыки делаются с аргументами.
+Two tiny dependency-free executables, built with `build.cmd` (csc from .NET
+Framework ships with every Windows). Make shortcuts with arguments.
 
-| Кнопка | Команда | Что делает |
+| Button | Command | What it does |
 |---|---|---|
-| 8K 60 Гц | `SetDisplay.exe 7680 4320 60` | Обычный кинорежим (4K-контент + `r`/`e`) |
-| 8K 24 Гц кино | `SetDisplay.exe 7680 4320 24` | Только под кнопку `8`: нейро-8K ложится 1:1 |
-| 4K 165 Гц | `SetDisplay.exe 3840 2160 165` | Игровой режим |
-| HDR вкл / выкл | `HdrSwitch.exe on` / `off` | HDR панели (ещё `toggle`, `status`) |
+| 8K 60 Hz | `SetDisplay.exe 7680 4320 60` | Regular film mode (4K content + `r`/`e`) |
+| 8K 24 Hz cinema | `SetDisplay.exe 7680 4320 24` | Only for the `8` key: neural 8K locks 1:1 |
+| 4K 165 Hz | `SetDisplay.exe 3840 2160 165` | Gaming mode |
+| HDR on / off | `HdrSwitch.exe on` / `off` | Panel HDR (also `toggle`, `status`) |
 
-`SetDisplay.exe list` показывает все режимы панели. `HdrSwitch.exe status`
-возвращает кодом: 0 выкл, 1 вкл, 2 не поддерживается. Обе утилиты при неудаче
-не молчат, а говорят окном, в чём дело.
+`SetDisplay.exe list` prints every mode the panel offers. `HdrSwitch.exe status`
+returns via exit code: 0 off, 1 on, 2 unsupported. On failure both tools speak
+up with a message box instead of dying silently.
 
-Грабли, зашитые в них:
-- **Win11 26200: легаси-API врёт про HDR.** `GET_ADVANCED_COLOR_INFO` (type 9)
-  отдаёт advancedColorEnabled=1 всегда. Честное состояние - только
-  `GET_ADVANCED_COLOR_INFO_2` (type **15**, поле activeColorMode: 0=SDR 1=WCG
-  2=HDR); сеттер - `SET_HDR_STATE` (type **16**), легаси (10) оставлен фолбэком.
-- **HDR применяется секунды, не мгновенно.** Проверять результат сразу после
-  сеттера бесполезно (вернёт «не удалось» при коде успеха) - нужен опрос до 4 с.
-- **Мультимонитор:** идти по всем путям и считать успехом хотя бы один -
-  иначе падение на первом же неподходящем экране.
-- **EnumDisplaySettings из PowerShell 5.1 молча фейлится** (маршалинг DEVMODE),
-  из C#-exe работает.
+Pitfalls baked into them:
+- **Win11 26200: the legacy API lies about HDR.** `GET_ADVANCED_COLOR_INFO`
+  (type 9) returns advancedColorEnabled=1 always. The honest state is only in
+  `GET_ADVANCED_COLOR_INFO_2` (type **15**, field activeColorMode: 0=SDR 1=WCG
+  2=HDR); the setter is `SET_HDR_STATE` (type **16**), legacy (10) kept as
+  fallback.
+- **HDR applies over seconds, not instantly.** Checking the state right after
+  the setter is useless (reports failure on a successful switch): poll for up
+  to 4 s.
+- **Multi-monitor:** walk every path and count one success as success,
+  otherwise you die on the first display that doesn't support HDR.
+- **EnumDisplaySettings silently fails from PowerShell 5.1** (DEVMODE
+  marshaling); works fine from a C# exe.
 
-## Замеры (RTX 5090, все с 0 дропов)
+## Measurements (RTX 5090, all with 0 drops)
 
-| Сценарий | Результат |
+| Scenario | Result |
 |---|---|
-| Кино 24 fps без фильтров | каждый кадр ровно 6 раз на 144 Гц, pulldown физически невозможен |
+| Film 24 fps, no filters | every frame shown exactly 6 times at 144 Hz, pulldown physically impossible |
 | RIFE 1080p24 (v4.26 x6) | 143.86 fps |
-| RIFE 4K24 (v4.25_lite x3) | 71.93 fps, запас throughput 20% |
-| RIFE 25 fps PAL (дробный x5.76) | ровно 144.0 |
-| RIFE 29.97 NTSC (дробный x4.8) | ровно 144.0 |
-| Envy-граф 1080p24 -> 4K 72fps | 98 fps throughput при потребности 72 |
-| AnimeJaNai 4K -> 8K | 36.3 fps (кино 24/30 тянет), VRAM 3.7 ГБ |
-| Кнопка 8 на живом 8K@60 (RIFE до 30 + апскейл) | ровно 30.0 fps на панель 7680x4320 |
-| RIFE 4K на живом 8K@60 (дробный x2.5) | ровно 60.0 fps |
-| HDR PQ через RIFE | gamma/primaries/10 бит проходят нетронутыми |
-| Джиттер вывода: до лока частот / после | 0.0654 -> 0.0001 (в 650 раз) |
-| **Реальный фильм** 4K HDR10+ 10 бит на 8K@60 fullscreen + RIFE | 0 дропов, панель 60.0 Гц, джиттер 0.005 (было 1537 дропов) |
-| Нейро-8K (кнопка 8) на 8K@60 fullscreen | НЕ влезает: 17 Гц с уплавнялкой, 57 без неё |
-| Нейро-8K на 8K@24 fullscreen | 0 дропов, лок 1:1 - единственный рабочий режим для 8K-апскейла |
+| RIFE 4K24 (v4.25_lite x3) | 71.93 fps, 20% throughput headroom |
+| RIFE 25 fps PAL (fractional x5.76) | exactly 144.0 |
+| RIFE 29.97 NTSC (fractional x4.8) | exactly 144.0 |
+| Envy graph 1080p24 -> 4K 72fps | 98 fps throughput against 72 needed |
+| AnimeJaNai 4K -> 8K | 36.3 fps (handles 24/30 film), 3.7 GB VRAM |
+| `8` key on a live 8K@60 panel (RIFE to 30 + upscale) | exactly 30.0 fps to a 7680x4320 panel |
+| RIFE 4K on a live 8K@60 panel (fractional x2.5) | exactly 60.0 fps |
+| HDR PQ through RIFE | gamma/primaries/10-bit pass through untouched |
+| Output jitter: before / after clock lock | 0.0654 -> 0.0001 (650x) |
+| **Real film**, 4K HDR10+ 10-bit on 8K@60 fullscreen + RIFE | 0 drops, panel at 60.0 Hz, jitter 0.005 (was 1537 drops) |
+| Neural 8K (`8` key) on 8K@60 fullscreen | does NOT fit: 17 Hz with interpolation, 57 without |
+| Neural 8K on 8K@24 fullscreen | 0 drops, 1:1 lock: the only viable mode for 8K upscaling |
 
-## Архитектура
+## Before / after
+
+1080p source vs AnimeJaNai 2x output (crops from the test run):
+
+| Original 1080p | AnimeJaNai 4K |
+|---|---|
+| ![original 1080p](docs/compare_orig_1080p.png) | ![AnimeJaNai 4K](docs/compare_janai_4K.png) |
+
+## Architecture
 
 ```
 mpv (vo=gpu-next, d3d11) --vf vapoursynth--> VS R76 (embedded Python 3.14)
-    -> vs-mlrt v15.16 (TensorRT 10.16, движки кэшируются на диск)
-        -> RIFE v4.26 (<=1440p) / v4.25_lite (4K) - интерполяция
-        -> AnimeJaNai V3.1 SPANF3 (Balanced) - апскейл 2x
+    -> vs-mlrt v15.16 (TensorRT 10.16, engines cached on disk)
+        -> RIFE v4.26 (<=1440p) / v4.25_lite (4K) - interpolation
+        -> AnimeJaNai V3.1 SPANF3 (Balanced) - 2x upscale
 ```
 
-- `portable_config/mpv.conf` - каденция (display-resample + oversample), HDR passthrough, скейлинг ewa_lanczossharp
-- `portable_config/*.vpy` - графы фильтров (rife / janai / envy / janai8k)
-- `portable_config/scripts/smart-modes.lua` - кнопки, эксклюзивность, HDR-гейт
-- `portable_config/scripts/gpu-clock-lock.lua` - лок частот памяти на время просмотра (см. грабли)
+- `portable_config/mpv.conf` - cadence (display-resample + oversample), HDR passthrough, ewa_lanczossharp scaling
+- `portable_config/*.vpy` - filter graphs (rife / janai / envy / janai8k)
+- `portable_config/scripts/smart-modes.lua` - hotkeys, exclusivity, HDR gate
+- `portable_config/scripts/gpu-clock-lock.lua` - memory clock lock while watching (see pitfalls)
 
-## Грабли, оплаченные кровью (главные уроки)
+## Pitfalls paid for in blood (the main lessons)
 
-1. **Два vapoursynth-фильтра цепочкой душат друг друга.** Апскейл и RIFE двумя
-   `--vf` дают 24.8 fps; те же два шага одним VS-графом - 107 fps. Все
-   «прыгающие fps» пакетных сборок AnimeJanai+RIFE лечатся сшивкой в один .vpy.
-2. **RIFE v4.6 рисует «чешую» на зерне.** На временнОм зерне рипов (нетфликс,
-   старые BD) v4.6 в любом режиме (fp16/fp32/scale) даёт регулярную вафельную
-   сетку на интерполированных кадрах. Лечение: v4.26 до 1440p, v4.25_lite на 4K.
-   Обе на полном flow (scale=1).
-3. **Порядок в комбо-режиме: RIFE до апскейла.** На исходном разрешении работают
-   чистые новые модели; интерполировать после апскейла = гнать RIFE на 4K, где
-   выбор моделей по скорости беднее.
-4. **Full-range без симметрии выцветает.** Конверсия YUV->RGB->YUV без явного
-   range на обеих сторонах жмёт full-range в limited (чёрный сереет). Фикс:
-   RemoveFrameProps + range_in_s/range_s="limited" симметрично - full проходит
-   сквозь RGBH как out-of-range float без потерь.
-5. **Дробный множитель обязан ставить AssumeFPS.** Мост mpv отдаёт клип с fps
-   0/0, vsmlrt свой AssumeFPS пропускает, кадры уносят полную длительность
-   исходника - слоумо. Целочисленный путь не затронут (Interleave делит сам).
-6. **Мост mpv не отдаёт colorimetry в пропсах кадра.** Только
-   _ColorRange/_ColorSpace/_ChromaLocation. _Transfer/_Matrix/_Primaries НЕТ,
-   поэтому HDR-гейт живёт в lua (mpv знает gamma до фильтра), а матрица -
-   константная эвристика (декод и энкод одной константой самосокращаются).
-7. **floor на границе герцовки.** Панель, отдающая 143.856 вместо 144, роняет
-   `int(target // fps)` с 6 на 5. Выбор множителя - только через проверку лока
-   с допуском 1% (лимит подгонки скорости display-resample).
-8. **Мерить надо в ПОЛНЫЙ ЭКРАН, а не в окне.** Главный методический урок дня.
-   Все замеры в окне врут: рендер маленького окна дёшев, а на 8K панели полный
-   экран - это 33 Мпикс на каждый vsync. Два бага прятались ровно за этим:
-   flip-модель (ниже) и нежизнеспособность нейро-8K.
-9. **d3d11 flip-модель душит 8K@60 fullscreen до 32 Гц.** Панель рапортует 60,
-   а `estimated-display-fps` = 31.8: каждый второй vsync пропадает, джиттер 1.85,
-   при включённом RIFE - 1537 дропов за 30 секунд. Лечение: `d3d11-flip=no`
-   (джиттер 0.003, честные 60) либо `gpu-api=vulkan` (0.0157). HDR passthrough
-   при этом цел. В окне баг не виден совсем.
-10. **Бюджет 8K реален: инференс + вывод 33 Мпикс не складываются.** RIFE на
-   4K-кадрах в vo=null даёт 81.6 fps, но с реальным выводом на 8K - только 46-49
-   вместо нужных 60 (num_streams и cuda-graph не спасают: 32 и 44). Поэтому на
-   60 Гц панелях с 4K+ контентом цель - 30 fps (лок 2:2, работы вдвое меньше,
-   3:2-джадера всё равно нет). Нейро-апскейл 4K->8K вместе с выводом в 8K не
-   влезает вовсе (17 Гц), живёт только на панели 8K@24 с локом 1:1.
-11. **Микростаттер раз в секунду - это P-state, а не плеер.** С двумя мониторами
-   разной герцовки (1440p@360 + 8K@60) и низкой нагрузкой от видео драйвер
-   каждую секунду роняет память 15306 -> 7001 МГц и обратно; каждая смена
-   частоты морозит GPU на кадр. Замерено на ГОЛОМ воспроизведении без фильтров:
-   18 переключений P0<->P3 за 19 секунд, джиттер вывода 0.065 против 0.0001
-   с залоченной памятью (в 650 раз). Лечение: `gpu-clock-lock.lua` дёргает
-   `nvidia-smi -lmc` на время просмотра и `-rmc` при выходе. Если mpv УБИТ
-   (не закрыт), лок остаётся - снять руками `nvidia-smi -rmc` либо просто
-   открыть и закрыть плеер. Тот же эффект даёт "Предпочтителен максимальный
-   уровень производительности" в панели NVIDIA, но глобально и круглосуточно.
+1. **Two chained vapoursynth filters strangle each other.** Upscale and RIFE
+   as two `--vf` entries give 24.8 fps; the same two steps in one VS graph
+   give 107 fps. Every "jumpy fps" report about packaged AnimeJaNai+RIFE
+   builds is cured by stitching them into a single .vpy.
+2. **RIFE v4.6 paints a waffle onto grain.** On the temporal grain of real
+   rips (Netflix, old BDs) v4.6 in every mode (fp16/fp32/scale) produces a
+   regular waffle grid on interpolated frames. Cure: v4.26 up to 1440p,
+   v4.25_lite at 4K. Both at full flow (scale=1).
+3. **Combo-mode order: RIFE before upscale.** At source resolution the clean
+   new models are fast enough; interpolating after the upscale means running
+   RIFE at 4K, where the fast-model selection is poorer.
+4. **Full-range washes out without symmetry.** YUV->RGB->YUV conversion
+   without an explicit range on both sides squeezes full-range into limited
+   (blacks turn gray). Fix: RemoveFrameProps + range_in_s/range_s="limited"
+   symmetrically; full range passes through RGBH as out-of-range float,
+   bit-exact.
+5. **The fractional path must set AssumeFPS.** The mpv bridge hands over a
+   clip with fps 0/0, vsmlrt skips its own AssumeFPS, frames inherit the full
+   source duration: slow motion. The integer path is unaffected (Interleave
+   divides durations itself).
+6. **The mpv bridge does not pass colorimetry in frame props.** Only
+   _ColorRange/_ColorSpace/_ChromaLocation. No _Transfer/_Matrix/_Primaries,
+   so the HDR gate lives in lua (mpv knows gamma before the filter), and the
+   matrix is a constant heuristic (decode and encode with the same constant
+   cancel out).
+7. **floor at the refresh-rate boundary.** A panel reporting 143.856 instead
+   of 144 drops `int(target // fps)` from 6 to 5. Pick the multiplier only by
+   checking the lock with 1% tolerance (the display-resample speed-adjustment
+   limit).
+8. **Measure FULLSCREEN, not windowed.** The most expensive methodology
+   lesson of the week. Every windowed measurement lies: rendering a small
+   window is cheap, while fullscreen on an 8K panel is 33 Mpix per vsync. Two
+   bugs hid exactly behind this: the flip model (below) and the nonviability
+   of neural 8K.
+9. **The d3d11 flip model strangles 8K@60 fullscreen down to 32 Hz.** The
+   panel reports 60 while `estimated-display-fps` says 31.8: every second
+   vsync vanishes, jitter 1.85, and with RIFE on, 1537 drops in 30 seconds.
+   Cure: `d3d11-flip=no` (jitter 0.003, honest 60) or `gpu-api=vulkan`
+   (0.0157). HDR passthrough survives either. Windowed, the bug is completely
+   invisible.
+10. **The 8K budget is real: inference plus 33 Mpix output don't add up.**
+   RIFE on 4K frames hits 81.6 fps with vo=null, but with real output to 8K
+   only 46-49 against the needed 60 (num_streams and cuda-graph don't save
+   it: 32 and 44). So on 60 Hz panels with 4K+ content the target is 30 fps
+   (2:2 lock, half the work, still no 3:2 judder). Neural 4K->8K upscaling
+   together with 8K output doesn't fit at all (17 Hz); it lives only on a
+   panel switched to 8K@24 with a 1:1 lock.
+11. **The once-per-second microstutter is a P-state, not the player.** With
+   two monitors of different refresh rates (1440p@360 + 8K@60) and the low
+   load of video playback, the driver drops memory clocks 15306 -> 7001 MHz
+   and back every second; each transition freezes the GPU for a frame.
+   Measured on BARE playback with no filters: 18 P0<->P3 transitions in 19
+   seconds, output jitter 0.065 versus 0.0001 with locked memory (650x).
+   Cure: `gpu-clock-lock.lua` runs `nvidia-smi -lmc` for the duration of
+   playback and `-rmc` on exit. If mpv is KILLED (not closed), the lock
+   stays: release it with `nvidia-smi -rmc` or just open and close the
+   player. The NVIDIA control panel's "Prefer maximum performance" does the
+   same thing, but globally and around the clock.
 
-## Установка с нуля
+## Install from scratch
 
-Компоненты (версии рабочей сборки):
+Components (versions of the working build):
 
-1. **mpv** x86_64-v3 от [shinchiro](https://github.com/shinchiro/mpv-winbuild-cmake/releases)
-   (сборка 2026-06-10, v0.41 git) - распаковать в `C:\Apps\mpv`
-2. **Python 3.14 embeddable** с python.org - распаковать туда же,
-   в `python314._pth` добавить строку `Lib\site-packages`
-3. **VapourSynth R76 portable** ([releases](https://github.com/vapoursynth/vapoursynth/releases)) -
-   распаковать туда же, поставить колесо: `python.exe -m pip install wheel\VapourSynth-*.whl`
-   (pip сначала через get-pip.py). Скопировать из `Lib\site-packages\vapoursynth\`
-   файлы `vsscript.dll` (как `VSScript.dll`) и `libvapoursynth.dll` в корень mpv
-4. **vs-mlrt TensorRT** ([v15.16](https://github.com/AmusementClub/vs-mlrt/releases)) -
-   распаковать в `vs-plugins\`
-5. **Модели**: RIFE `rife_v4.26.7z`, `rife_v4.25_lite.7z` (оттуда же, релиз
-   external-models) в `vs-plugins\models\rife\`; AnimeJaNai V3.1 SPANF3 из
-   [overlay-пака 3.5.0](https://github.com/the-database/mpv-AnimeJaNai/releases)
-   в `vs-plugins\models\animejanai\`; miscfilters
-   ([R2](https://github.com/vapoursynth/vs-miscfilters-obsolete/releases)) в `vs-plugins\`
-6. **Конфиги этого репозитория** - в `portable_config\`
-7. **VSScript-конфиг**: файл `vapoursynth.toml` из этого репо в
-   `%APPDATA%\vapoursynth\` (пути внутри поправить под свою установку).
-   Без него mpv не найдёт Python: «Failed to initialize VSScript»
-8. **Кнопки панели** (опционально): `desktop-tools\build.cmd`, затем ярлыки
-   с аргументами из таблицы выше
+1. **mpv** x86_64-v3 from [shinchiro](https://github.com/shinchiro/mpv-winbuild-cmake/releases)
+   (2026-06-10 build, v0.41 git): unpack into `C:\Apps\mpv`
+2. **Python 3.14 embeddable** from python.org: unpack into the same folder,
+   add the line `Lib\site-packages` to `python314._pth`
+3. **VapourSynth R76 portable** ([releases](https://github.com/vapoursynth/vapoursynth/releases)):
+   unpack into the same folder, install the wheel:
+   `python.exe -m pip install wheel\VapourSynth-*.whl` (bootstrap pip via
+   get-pip.py first). Copy `vsscript.dll` (as `VSScript.dll`) and
+   `libvapoursynth.dll` from `Lib\site-packages\vapoursynth\` into the mpv root
+4. **vs-mlrt TensorRT** ([v15.16](https://github.com/AmusementClub/vs-mlrt/releases)):
+   unpack into `vs-plugins\`
+5. **Models**: RIFE `rife_v4.26.7z`, `rife_v4.25_lite.7z` (same place, the
+   external-models release) into `vs-plugins\models\rife\`; AnimeJaNai V3.1
+   SPANF3 from the [overlay pack 3.5.0](https://github.com/the-database/mpv-AnimeJaNai/releases)
+   into `vs-plugins\models\animejanai\`; miscfilters
+   ([R2](https://github.com/vapoursynth/vs-miscfilters-obsolete/releases)) into `vs-plugins\`
+6. **Configs from this repository** into `portable_config\`
+7. **VSScript config**: put `vapoursynth.toml` from this repo into
+   `%APPDATA%\vapoursynth\` (adjust the paths inside to your install).
+   Without it mpv can't find Python: "Failed to initialize VSScript"
+8. **Desktop buttons** (optional): run `desktop-tools\build.cmd`, then make
+   shortcuts with the arguments from the table above
 
-Ловушка MSIX: если ставите из шелла, запущенного внутри MSIX-контейнера
-(Claude Desktop и подобные), запись в `%APPDATA%` виртуализуется и снаружи
-не существует. Обход - положить файл разовой задачей Планировщика
+MSIX trap: if you install from a shell running inside an MSIX container
+(Claude Desktop and the like), writes to `%APPDATA%` are virtualized and don't
+exist outside. Workaround: deploy the file via a one-shot Task Scheduler job
 (`setup\_deploy_toml.cmd`).
 
-Первый запуск каждого режима на новом разрешении собирает TensorRT-движок
-(1-2 минуты разово), кэш в `vs-plugins\trt-engines\`.
+The first launch of each mode at a new resolution builds a TensorRT engine
+(1-2 minutes, once); the cache lives in `vs-plugins\trt-engines\`.
 
-## Лицензии
+## Licenses
 
-Конфиги репозитория - делайте что хотите. Модели НЕ включены в репозиторий:
-AnimeJaNai - [the-database](https://github.com/the-database/mpv-AnimeJaNai),
-RIFE - [hzwer/Practical-RIFE](https://github.com/hzwer/Practical-RIFE) через
+The configs in this repository: do whatever you want. Models are NOT included:
+AnimeJaNai by [the-database](https://github.com/the-database/mpv-AnimeJaNai),
+RIFE by [hzwer/Practical-RIFE](https://github.com/hzwer/Practical-RIFE) via
 [vs-mlrt](https://github.com/AmusementClub/vs-mlrt). Sintel / Tears of Steel
-(тестовый контент) - (c) Blender Foundation, CC BY.
+(test content) are (c) Blender Foundation, CC BY.

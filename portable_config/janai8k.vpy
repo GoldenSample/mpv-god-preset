@@ -1,7 +1,8 @@
-# 8K-профиль: AnimeJaNai 2x до 7680x4320 для 4K-исходников (RTX 5090).
-# На 60 Гц панели (8K-телевизоры) кино 24 fps дополнительно интерполируется
-# до display/2 = 30 fps (ровный лок 2:2, без 3:2-джадера). Полные 60 вместе
-# с 8K-апскейлом в бюджет 5090 не влезают (janai 4K->8K = ~36 fps ёмкости).
+# 8K profile: AnimeJaNai 2x up to 7680x4320 for 4K sources (RTX 5090).
+# On a 60 Hz panel (8K TVs) 24 fps film is additionally interpolated to
+# display/2 = 30 fps (a clean 2:2 lock, no 3:2 judder). Full 60 together
+# with the 8K upscale doesn't fit the 5090 budget (janai 4K->8K = ~36 fps
+# of capacity).
 import os
 import sys
 from fractions import Fraction
@@ -12,7 +13,7 @@ from vapoursynth import core
 PLUGINS = r"C:\Apps\mpv\vs-plugins"
 sys.path.insert(0, PLUGINS)
 
-# Модель апскейла: "balanced" | "performance" (легче вдвое, если появятся дропы)
+# Upscale model: "balanced" | "performance" (half the weight, if drops appear)
 MODEL = "balanced"
 
 for dll in ("vstrt.dll", "miscfilters.dll"):
@@ -45,7 +46,7 @@ clip = video_in
 src_fps = container_fps if container_fps else 0.0
 target = display_fps if display_fps and display_fps > 0 else 60.0
 
-# гейт до 4K включительно: 2x от 4K = 8K
+# gate up to 4K inclusive: 2x from 4K = 8K
 if clip.width <= 3840 and clip.height <= 2400:
     name = MODELS["sd"] if clip.height <= 600 else MODELS[MODEL]
 
@@ -55,11 +56,12 @@ if clip.width <= 3840 and clip.height <= 2400:
 
     work = clip
 
-    # Интерполяция тут только для лёгкого входа (до 1440p -> выход до 2880p).
-    # Для 4K->8K её нет: замер на живой 8K@60 панели = 17 Гц с ней против 57 без
-    # (инференс 8K + вывод 33 Мпикс не влезают в 5090 вместе). Кино 24 fps на
-    # 60 Гц даст 3:2-джадер - для чистой каденции панель в 8K@24 (там лок 1:1,
-    # замер 0 дропов), либо смотреть 4K через кнопку r/e.
+    # Interpolation here is only for light input (up to 1440p -> output up to
+    # 2880p). None for 4K->8K: measured on a live 8K@60 panel it's 17 Hz with
+    # it versus 57 without (8K inference plus 33 Mpix output don't fit the
+    # 5090 together). 24 fps film on 60 Hz will show 3:2 judder - for clean
+    # cadence switch the panel to 8K@24 (1:1 lock, measured 0 drops), or
+    # watch 4K through the r/e keys.
     do_rife = (56 <= target <= 62 and 0 < src_fps < 32
                and clip.width * clip.height <= 2560 * 1440)
     if do_rife:
@@ -72,7 +74,7 @@ if clip.width <= 3840 and clip.height <= 2400:
 
     if do_rife:
         src = Fraction(src_fps).limit_denominator(1001)
-        multi = Fraction(round(target), 2) / src   # 24 -> 30 на 60 Гц, лок 2:2
+        multi = Fraction(round(target), 2) / src   # 24 -> 30 at 60 Hz, 2:2 lock
         if multi > 1:
             big = rgb.width * rgb.height > 2560 * 1440
             model = RIFEModel.v4_25_lite if big else RIFEModel.v4_26
@@ -83,7 +85,7 @@ if clip.width <= 3840 and clip.height <= 2400:
                 rgb = core.std.AddBorders(rgb, right=pad_r, bottom=pad_b)
             rgb = vsmlrt.RIFE(rgb, multi=multi, scale=1.0, model=model,
                               backend=Backend.TRT(**TRT), video_player=True)
-            # мост отдаёт fps 0/0: длительности дробного пути ставим сами
+            # the bridge hands over fps 0/0: set fractional-path durations ourselves
             out_fps = src * multi
             rgb = core.std.AssumeFPS(rgb, fpsnum=out_fps.numerator, fpsden=out_fps.denominator)
             if pad_r or pad_b:
@@ -94,7 +96,7 @@ if clip.width <= 3840 and clip.height <= 2400:
     if pad_r or pad_b:
         rgb = core.std.AddBorders(rgb, right=pad_r, bottom=pad_b)
 
-    # HDR-гейт живёт в scripts/smart-modes.lua
+    # the HDR gate lives in scripts/smart-modes.lua
     up = vsmlrt.inference(
         rgb,
         network_path=os.path.join(PLUGINS, "models", "animejanai", name),
@@ -104,7 +106,7 @@ if clip.width <= 3840 and clip.height <= 2400:
     if pad_r or pad_b:
         up = core.std.Crop(up, right=pad_r * 2, bottom=pad_b * 2)
 
-    # ordered вместо error_diffusion: диффузия ошибки на 33 Мпикс душит CPU
+    # ordered instead of error_diffusion: error diffusion on 33 Mpix strangles the CPU
     clip = core.resize.Bicubic(up, format=orig_fmt, matrix_s=matrix,
                                range_s="limited", chromaloc_s="left",
                                dither_type="ordered")

@@ -1,5 +1,5 @@
-// HdrSwitch.exe on|off|toggle|status — HDR (advanced color) основного дисплея.
-// status: код возврата 0=выкл, 1=вкл, 2=не поддерживается.
+// HdrSwitch.exe on|off|toggle|status - HDR (advanced color) of the primary display.
+// status: exit code 0=off, 1=on, 2=unsupported.
 using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -37,8 +37,8 @@ class HdrSwitch
     [DllImport("user32.dll")] static extern int DisplayConfigGetDeviceInfo(ref GET_ADV2 p);
     [DllImport("user32.dll")] static extern int DisplayConfigSetDeviceInfo(ref SET_ADV p);
 
-    // 1=вкл, 0=выкл, -1=не читается. Сначала новый API (activeColorMode: 2=HDR),
-    // фолбэк на легаси-бит advancedColorEnabled.
+    // 1=on, 0=off, -1=unreadable. Try the new API first (activeColorMode:
+    // 2=HDR), fall back to the legacy advancedColorEnabled bit.
     static int ReadHdr(LUID adapter, uint id)
     {
         var g2 = new GET_ADV2();
@@ -58,8 +58,8 @@ class HdrSwitch
 
     const uint QDC_ONLY_ACTIVE_PATHS = 2;
 
-    // HDR по HDMI применяется не мгновенно: панель пересинхронизируется
-    // секунды. Опрашиваем состояние до таймаута вместо мгновенной проверки.
+    // HDR over HDMI does not apply instantly: the panel takes seconds to
+    // resync. Poll the state up to a timeout instead of checking immediately.
     static bool WaitState(LUID adapter, uint id, bool want, int timeoutMs)
     {
         for (int t = 0; t < timeoutMs; t += 250)
@@ -79,7 +79,7 @@ class HdrSwitch
         var paths = new PATH_INFO[nPath];
         var modes = new MODE_INFO[nMode];
         if (QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, ref nPath, paths, ref nMode, modes, IntPtr.Zero) != 0)
-        { Fail("QueryDisplayConfig не ответил."); return 2; }
+        { Fail("QueryDisplayConfig did not respond."); return 2; }
 
         int result = 2;
         int switched = 0, failed = 0;
@@ -94,7 +94,7 @@ class HdrSwitch
             bool want = cmd == "on" ? true : cmd == "off" ? false : !enabled;
             if (want == enabled) { result = state; continue; }
 
-            // Windows 11 24H2+: тип SET_HDR_STATE (16); легаси (10) как фолбэк
+            // Windows 11 24H2+: SET_HDR_STATE type (16); legacy (10) as fallback
             var s = new SET_ADV();
             s.type = 16;
             s.size = (uint)Marshal.SizeOf(typeof(SET_ADV));
@@ -117,11 +117,11 @@ class HdrSwitch
 
         if (cmd != "status" && switched == 0 && failed > 0)
         {
-            Fail("HDR не переключился ни на одном дисплее (пробовал " + failed + ").");
+            Fail("HDR did not switch on any display (tried " + failed + ").");
             return 2;
         }
         if (result == 2 && cmd != "status")
-            Fail("HDR не поддерживается активным дисплеем (или выключен в Windows).");
+            Fail("HDR is not supported by the active display (or disabled in Windows).");
         return result;
     }
 

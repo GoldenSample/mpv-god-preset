@@ -1,16 +1,16 @@
--- Лечение микростаттера раз в секунду.
+-- Cure for the once-per-second microstutter.
 --
--- Диагноз 07-12: с двумя мониторами разной герцовки (1440p@360 + 8K@60)
--- и низкой нагрузкой от видео драйвер каждую секунду роняет память
--- 15306 -> 7001 МГц и поднимает обратно. Каждая смена частоты памяти
--- морозит GPU на несколько мс. Замер: джиттер вывода 0.065 против 0.0001
--- при залоченной памяти (в 650 раз), плюс задержанные кадры.
+-- Diagnosis 07-12: with two monitors of different refresh rates
+-- (1440p@360 + 8K@60) and the low load of video playback, the driver drops
+-- memory clocks 15306 -> 7001 MHz and back every second. Each memory clock
+-- transition freezes the GPU for a few ms. Measured: output jitter 0.065
+-- versus 0.0001 with locked memory (650x), plus delayed frames.
 --
--- Лок держится только пока открыт плеер и снимается при выходе,
--- чтобы карта не сидела на P0 круглые сутки.
+-- The lock is held only while the player is open and released on exit,
+-- so the card doesn't sit at P0 around the clock.
 
 local NVSMI = os.getenv("SystemRoot") .. "\\System32\\nvidia-smi.exe"
-local MEM_CLOCK = "15306"   -- максимум GDDR7 на 5090
+local MEM_CLOCK = "15306"   -- GDDR7 maximum on the 5090
 local locked = false
 
 local function run(args, async)
@@ -37,13 +37,13 @@ end
 local function unlock()
     if not locked then return end
     locked = false
-    run({NVSMI, "-rmc"}, false)  -- синхронно: успеть до выхода
+    run({NVSMI, "-rmc"}, false)  -- synchronous: must finish before exit
 end
 
 mp.register_event("file-loaded", lock)
 mp.register_event("shutdown", unlock)
 
--- страховка: снять лок, если плеер долго стоит на паузе
+-- safety net: re-lock when playback resumes after a long pause
 mp.observe_property("pause", "bool", function(_, paused)
     if paused == false then lock() end
 end)

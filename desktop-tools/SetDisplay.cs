@@ -1,5 +1,5 @@
-// SetDisplay.exe <width> <height> <hz> — переключение режима основного дисплея.
-// SetDisplay.exe list — показать доступные режимы.
+// SetDisplay.exe <width> <height> <hz> - switch the primary display mode.
+// SetDisplay.exe list - print available modes.
 using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -51,9 +51,9 @@ class SetDisplay
 
         EnumDisplaySettingsW(null, ENUM_CURRENT, ref dm);
         if (dm.dmPelsWidth == w && dm.dmPelsHeight == h && dm.dmDisplayFrequency == hz)
-            return 0; // уже в этом режиме
+            return 0; // already in this mode
 
-        // ищем точный режим в списке доступных
+        // look for the exact mode in the list of available ones
         var target = new DEVMODE();
         target.dmSize = (short)Marshal.SizeOf(typeof(DEVMODE));
         bool found = false;
@@ -63,7 +63,7 @@ class SetDisplay
 
         if (!found)
         {
-            MessageBox.Show(string.Format("Режим {0}x{1}@{2} Гц не найден в списке доступных.\nПроверь вход/кабель панели.", w, h, hz),
+            MessageBox.Show(string.Format("Mode {0}x{1}@{2} Hz not found among available modes.\nCheck the panel input/cable.", w, h, hz),
                             "SetDisplay", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return 3;
         }
@@ -72,7 +72,7 @@ class SetDisplay
         int r = ChangeDisplaySettingsW(ref target, CDS_UPDATEREGISTRY);
         if (r != 0)
         {
-            MessageBox.Show(string.Format("Не удалось переключить режим (код {0}).", r),
+            MessageBox.Show(string.Format("Failed to switch the mode (code {0}).", r),
                             "SetDisplay", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return 1;
         }
