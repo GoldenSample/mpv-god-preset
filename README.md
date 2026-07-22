@@ -198,7 +198,8 @@ The first launch of each mode at a new resolution builds a TensorRT engine
 
 ## Licenses
 
-The configs in this repository: do whatever you want. Models are NOT included:
+The configs in this repository: do whatever you want ([Unlicense](LICENSE),
+public domain). Models are NOT included:
 AnimeJaNai by [the-database](https://github.com/the-database/mpv-AnimeJaNai),
 RIFE by [hzwer/Practical-RIFE](https://github.com/hzwer/Practical-RIFE) via
 [vs-mlrt](https://github.com/AmusementClub/vs-mlrt). Sintel / Tears of Steel
