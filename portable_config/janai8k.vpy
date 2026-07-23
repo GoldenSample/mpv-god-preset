@@ -13,8 +13,15 @@ from vapoursynth import core
 PLUGINS = r"C:\Apps\mpv\vs-plugins"
 sys.path.insert(0, PLUGINS)
 
-# Upscale model: "balanced" | "performance" (half the weight, if drops appear)
-MODEL = "balanced"
+# Upscale model: "balanced" | "performance".
+# 2026-07-24: switched to performance. The 07-12 measurement gave 36.3 fps of
+# capacity for 4K->8K on balanced, which does not fit 8K@60 and only lived on
+# an 8K@24 panel. The project's community benchmark catalog (52 runs on a
+# 5090) has balanced at 145-167 fps for 1080p->4K and performance at 250-302.
+# 4K->8K is exactly 4x the pixels and conv SR scales near-linearly, so
+# balanced extrapolates to 36-42 (matching our own measurement) and
+# performance to 63-75, crossing 60. Verify on the stats page.
+MODEL = "performance"
 
 for dll in ("vstrt.dll", "miscfilters.dll"):
     try:
