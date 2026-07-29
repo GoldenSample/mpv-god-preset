@@ -29,6 +29,29 @@ Press the same key again to turn it off. On HDR content (PQ/HLG) the upscale
 networks stay off (they are trained on SDR): `u` and `8` refuse with an
 on-screen explanation, `e` gracefully degrades to pure RIFE.
 
+## NLS: scope content fills the screen (Envy-style non-linear stretch)
+
+2.35:1 movies fill the 16:9 panel with no black bars and no warped faces:
+a linear stretch plus a center-protecting shader. The center rows keep
+natural proportions; the distortion is pushed into the top/bottom edges,
+where sky and floor live. Key `n` on, `N` off. Same idea for 4:3 content
+(GoPro Superview style) in `shaders/nls-superview.glsl`.
+
+| Letterbox (original) | Linear stretch (everything warps) | NLS (center rows stay round) |
+|---|---|---|
+| ![letterbox](docs/nls-1-letterbox.png) | ![linear](docs/nls-2-linear-stretch.png) | ![nls](docs/nls-3-nls.png) |
+
+Also available as a drop-in MPC-HC/madVR pixel shader: `mpc-hc/nls-scope-vertical.hlsl`
+(two steps, instructions in the file header). Principle credit:
+[sickgreg/Realtime-Superview-Stretch](https://github.com/sickgreg/Realtime-Superview-Stretch).
+
+## Hardware presets
+
+`presets/bei-3060ti/` — a complete home-theater `portable_config` for an
+RTX 3060 Ti + AVR + 4K TV: bitstream audio passthrough, automatic
+23.976/24 Hz switching (pure Win32, no third-party exes), anime-vs-movie
+autodetection by release-group tags, NLS, deband presets. See its README.
+
 ## Desktop buttons (`desktop-tools/`)
 
 Two tiny dependency-free executables, built with `build.cmd` (csc from .NET
