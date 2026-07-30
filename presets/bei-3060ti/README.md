@@ -34,7 +34,7 @@ If mpv picks the wrong audio device (TV instead of AVR), run
 
 | Key | Action |
 |---|---|
-| `n` / `N` | NLS scope-fill on / off (2.35:1 fills the screen, faces stay round) |
+| `n` / `N` | NLS on / off — `n` picks the axis itself: 2.35:1 stretches vertically, 4:3 horizontally (Superview); faces stay round |
 | `1` `2` `3` | deband light / medium / strong |
 | `5` | deband for HDR (near-zero grain) |
 | `0` | deband off — also the escape hatch when anime autodetect guesses wrong |
