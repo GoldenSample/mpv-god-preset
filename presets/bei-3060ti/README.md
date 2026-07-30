@@ -34,7 +34,8 @@ If mpv picks the wrong audio device (TV instead of AVR), run
 
 | Key | Action |
 |---|---|
-| `n` / `N` | NLS on / off — `n` picks the axis itself: 2.35:1 stretches vertically, 4:3 horizontally (Superview); faces stay round |
+| `n` / `N` | NLS on / off. `n` figures out the rest by itself: picks the axis (2.35:1 vertical, 4:3 horizontal), and on a 16:9 file with **baked-in** bars it detects and crops them first |
+| `Alt+n` / `Alt+N` | tune how the stretch is split. `Alt+n` = more zoom, less edge distortion (loses more of the left/right edges); `Alt+N` = the opposite. Push it to the end and you get a pure crop with zero distortion |
 | `1` `2` `3` | deband light / medium / strong |
 | `5` | deband for HDR (near-zero grain) |
 | `0` | deband off — also the escape hatch when anime autodetect guesses wrong |

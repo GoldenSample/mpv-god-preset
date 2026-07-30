@@ -31,11 +31,22 @@ on-screen explanation, `e` gracefully degrades to pure RIFE.
 
 ## NLS: scope content fills the screen (Envy-style non-linear stretch)
 
-2.35:1 movies fill the 16:9 panel with no black bars and no warped faces:
-a linear stretch plus a center-protecting shader. The center rows keep
-natural proportions; the distortion is pushed into the top/bottom edges,
-where sky and floor live. Key `n` on, `N` off. Same idea for 4:3 content
-(GoPro Superview style) in `shaders/nls-superview.glsl`.
+2.35:1 movies fill the 16:9 panel with no black bars and no warped faces.
+One key, `n`, works out the rest: it picks the axis (scope stretches
+vertically, 4:3 horizontally, Superview style), and on a 16:9 file with
+**baked-in** bars it detects and crops them first. `N` turns it off.
+
+The work is split between a **zoom** (shaving the usually-empty side
+edges) and the non-linear stretch, which is what keeps closeups from
+warping — hanging the full 1.32x on the frame edge alone reaches ~2.8x
+locally and visibly distorts a face that spans the full frame height.
+`Alt+n` / `Alt+N` tune that split live; push it all the way and you get a
+pure crop with zero distortion. Preset it with `--script-opts=nls-zoom=0.35`.
+
+As far as we can tell this is the only NLS implementation for mpv —
+[mpv#12856](https://github.com/mpv-player/mpv/issues/12856) has been open
+since Nov 2023 asking for exactly this, MPC-HC has no equivalent, and
+madVR for PC deliberately omits NLS (it is an Envy-only feature).
 
 | Letterbox (original) | Linear stretch (everything warps) | NLS (center rows stay round) |
 |---|---|---|
