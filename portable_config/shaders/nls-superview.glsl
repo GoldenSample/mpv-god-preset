@@ -1,19 +1,21 @@
 // Non-Linear Stretch: 4:3 -> 16:9, horizontal axis (GoPro Superview style).
-// Same math as nls-scope.glsl, other axis. Center columns stay natural,
-// stretch is pushed toward the left/right edges.
+// Same math as nls-scope.glsl, other axis: the center columns keep
+// natural proportions, the stretch is pushed into the left/right edges.
 //
-// Use together with a linear stretch to 16:9:
+// Drive it from scripts/nls.lua (key `n`). Manual use:
 //
-//   [superview]
-//   profile-restore=copy
-//   video-aspect-override=16/9
-//   glsl-shaders-append=~~/shaders/nls-superview.glsl
+//   mpv --video-aspect-override=16/9 \
+//       --glsl-shader=~~/shaders/nls-superview.glsl \
+//       --glsl-shader-opts=strength=1.333,falloff=2.5
 //
-// strength=1.333 makes the center fully natural for 4:3 content.
-// Principle credit: sickgreg/Realtime-Superview-Stretch.
+// strength = 1.333 keeps the center fully natural for 4:3 content.
+// Lower it toward 1.0 to spread some stretch across the whole frame
+// (madVR Envy calls this "Center Stretch"), which softens the edges.
+// falloff = how fast distortion ramps toward the edge (Envy's "Area").
+// See nls-scope.glsl for the full notes and the measured numbers.
 
 //!PARAM strength
-//!DESC center protection: 1.0 = none, 1.333 = full for 4:3
+//!DESC center correction: = stretch factor for a fully natural center
 //!TYPE float
 //!MINIMUM 1.0
 //!MAXIMUM 1.49
@@ -24,7 +26,7 @@
 //!TYPE float
 //!MINIMUM 1.0
 //!MAXIMUM 8.0
-2.0
+2.5
 
 //!HOOK OUTPUT
 //!BIND HOOKED
