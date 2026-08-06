@@ -56,8 +56,7 @@ end
 
 mp.add_key_binding("r", "smart-rife", function()
     if pointless_interp() then
-        mp.osd_message(("Уплавнение бессмысленно: панель %.3f Гц ~ видео %.3f fps.
-Сеть гоняла бы кадры впустую и роняла их. Смени частоту панели."):format(
+        mp.osd_message(("Уплавнение бессмысленно: панель %.3f Гц почти равна видео %.3f fps. Сеть гоняла бы кадры впустую и роняла их."):format(
             mp.get_property_number("display-fps") or 0,
             mp.get_property_number("container-fps") or 0), 5)
         return
