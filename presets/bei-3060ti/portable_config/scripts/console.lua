@@ -1,37 +1,37 @@
--- console.lua — визуальная консоль плеера.
--- Живые метрики, реальный бюджет кадра, самые дорогие проходы рендера,
--- состав цепочки и активные режимы. Вызов: F1 или i.
+-- console.lua — the metrics console.
+-- Live numbers, the real frame budget, the priciest render passes,
+-- the chain and the active modes. Open with F1 or i.
 --
--- ЗАЧЕМ. Когда картинка «тормозит», глазами не понять, где узкое место:
--- декодер, апскейл, шейдер или просто рассинхрон частот. Консоль отвечает
--- цифрами: сколько миллисекунд из отведённых съедает кадр и КАКОЙ проход
--- съедает больше всех.
+-- WHY. When playback stutters, eyes cannot tell where the wall is:
+-- the decoder, the upscaler, a shader, or mismatched refresh rates. This
+-- answers in numbers: how many ms of the budget a frame eats, and WHICH
+-- pass eats the most.
 --
--- ⚠ Ключевая тонкость, ради которой она вообще написана: при
--- video-sync=display-resample с interpolation=yes кадр пересчитывается
--- НА ЧАСТОТЕ ПАНЕЛИ, а не на частоте видео. На 8K это значит, что апскейл
--- 4K->8K крутится, скажем, 60 раз в секунду вместо 24, и бюджет падает
--- с 41.7 мс до 16.7 мс. Строка «считается N раз/с» показывает это явно.
+-- ⚠ The subtlety it exists for: with
+-- video-sync=display-resample and interpolation=yes a frame is recomputed
+-- AT THE PANEL RATE, not the video rate. On 8K that means a 4K->8K upscale
+-- runs 60 times a second instead of 24, and the budget drops
+-- from 41.7 ms to 16.7. The "computed N times/s" line makes that explicit.
 --
--- ⚠ Единицы vo-passes: документация называет микросекунды, но по факту
--- (сумма проходов против реального fps без дропов) это НАНОсекунды.
--- Проверено на 4K HDR: сумма 828000 единиц при 24 fps и нуле дропов, то
--- есть 0.83 мс, а не 828 мс. Делим на 1e6.
+-- ⚠ vo-passes units: the docs say microseconds, but measured against
+-- real fps with zero drops they are NANOseconds.
+-- Verified on 4K HDR: 828000 units at 24 fps with no drops means
+-- 0.83 ms, not 828 ms. So divide by 1e6.
 
 local mp = require 'mp'
 local assdraw = require 'mp.assdraw'
 
 local visible, timer = false, nil
 
--- Палитра Claude. В ASS каналы перевёрнуты: BGR, не RGB.
---  глина #D97757 · графит #1A1915 · плашка #2A2823 · рамка #46433A
---  текст #F5F3EE · вторичный #8F8B82 · тусклый #6B6862
-local ACCENT = "{\\c&H5777D9&}"   -- #D97757, он же «внимание»
-local OK     = "{\\c&HA0BF7F&}"   -- приглушённый шалфей, «в норме»
-local WARN   = "{\\c&H70A8D0&}"   -- тёплая охра, «на грани»
+-- Claude palette. ASS reverses the channels: BGR, not RGB.
+--  clay #D97757 · graphite #1A1915 · plate #2A2823 · border #46433A
+--  text #F5F3EE · secondary #8F8B82 · dim #6B6862
+local ACCENT = "{\\c&H5777D9&}"   -- #D97757, doubles as "attention"
+local OK     = "{\\c&HA0BF7F&}"   -- muted sage, "healthy"
+local WARN   = "{\\c&H70A8D0&}"   -- warm ochre, "borderline"
 local FAINT  = "{\\c&H6B686B&}"   -- #6B6862
-local R      = "{\\c&HEEF3F5&}"   -- #F5F3EE основной текст
--- прежние имена, чтобы не переписывать всё тело файла
+local R      = "{\\c&HEEF3F5&}"   -- #F5F3EE primary text
+-- legacy names so the body below stays untouched
 local GREEN, YELLOW, RED, GREY, CYAN = OK, WARN, ACCENT, FAINT, ACCENT
 
 local function osd_size()
@@ -43,8 +43,8 @@ local function osd_size()
     return W, H
 end
 
--- ⚠ assdraw МАСШТАБИРУЕТ координаты (×8 по умолчанию). Рисовать только его
--- методами: ручной append команд "m x y l x y" схлопнет фигуру в угол экрана.
+-- ⚠ assdraw SCALES coordinates (×8 by default). Draw only through its own
+-- methods: appending "m x y l x y" by hand collapses the shape into a corner.
 local function rrect(a, x, y, w, h, r)
     r = math.min(r, math.floor(w / 2), math.floor(h / 2))
     local x2, y2 = x + w, y + h
@@ -68,7 +68,7 @@ local function bar(frac, w)
     return col(frac) .. string.rep("|", f) .. GREY .. string.rep(".", w - f) .. R
 end
 
--- суммарное и самое дорогое время рендера
+-- total render time and the priciest passes
 local function passes()
     local vp = mp.get_property_native("vo-passes")
     if not vp then return nil, {} end
@@ -87,13 +87,13 @@ end
 local function build()
     local a = assdraw.ass_new()
 
-    -- Подложка того же тёплого графита, что у меню: цифры читаются на любом
-    -- кадре, и оба оверлея выглядят одним семейством.
+    -- Same warm graphite plate as the menu: numbers stay readable over any
+    -- frame, and both overlays read as one family.
     local _, oh = osd_size()
     local s   = math.max(1, math.min(4, oh / 1080))
     local fs  = math.floor(12 * s + 0.5)
-    local m   = math.floor(20 * s + 0.5)     -- отступ панели от края
-    local pad = math.floor(18 * s + 0.5)     -- внутренние поля
+    local m   = math.floor(20 * s + 0.5)     -- panel inset from the edge
+    local pad = math.floor(18 * s + 0.5)     -- inner padding
     a:new_event()
     a:append("{\\an7\\pos(0,0)\\bord1\\shad0\\1c&H15191A&\\1a&H2A&\\3c&H3A4346&\\3a&H60&}")
     a:draw_start()
@@ -113,59 +113,59 @@ local function build()
     local interp   = mp.get_property_bool("interpolation", false)
     local vsync    = str("video-sync", "?")
 
-    a:append(CYAN .. "КОНСОЛЬ" .. R .. GREY .. "  F1 закрыть" .. R .. "\\N")
-    a:append(string.format("панель    %dx%d @ %.3f Гц\\N", dw, dh, dfps))
-    a:append(string.format("исходник  %dx%d @ %.3f  %s %s  %s\\N",
+    a:append(CYAN .. "CONSOLE" .. R .. GREY .. "  F1 to close" .. R .. "\\N")
+    a:append(string.format("panel     %dx%d @ %.3f Hz\\N", dw, dh, dfps))
+    a:append(string.format("source    %dx%d @ %.3f  %s %s  %s\\N",
         sw, sh, cfps, str("video-format", "?"):upper(),
         str("video-params/pixelformat", "?"), hdr))
-    a:append(string.format("декодер   %s\\N", str("hwdec-current", "нет")))
+    a:append(string.format("decoder   %s\\N", str("hwdec-current", "none")))
 
-    -- ---------- бюджет: главное ----------
+    -- ---------- the budget: the whole point ----------
     local rt, top = passes()
     local render_hz = (interp and vsync:find("display") and dfps > 0) and dfps or cfps
     if render_hz <= 0 then render_hz = dfps > 0 and dfps or 24 end
     local budget = 1000 / render_hz
 
-    a:append("\\N" .. CYAN .. "БЮДЖЕТ КАДРА" .. R .. "\\N")
+    a:append("\\N" .. CYAN .. "FRAME BUDGET" .. R .. "\\N")
     if rt then
         local frac = rt / budget
-        a:append(string.format("рендер    %s%.2f мс%s из %.1f  %s %d%%\\N",
+        a:append(string.format("render    %s%.2f ms%s of %.1f  %s %d%%\\N",
             col(frac), rt, R, budget, bar(frac), math.floor(frac * 100 + 0.5)))
     else
-        a:append(GREY .. "рендер    нет данных (нужен vo=gpu-next)\\N" .. R)
+        a:append(GREY .. "render    no data (needs vo=gpu-next)\\N" .. R)
     end
     if interp and render_hz > cfps + 1 then
-        a:append(string.format("%sсчитается %.0f раз/с вместо %.0f (интерполяция)%s\\N",
+        a:append(string.format("%scomputed %.0f times/s instead of %.0f (interpolation)%s\\N",
             YELLOW, render_hz, cfps, R))
     else
-        a:append(string.format("%sсчитается %.0f раз/с (по частоте видео)%s\\N", GREY, render_hz, R))
+        a:append(string.format("%scomputed %.0f times/s (at video rate)%s\\N", GREY, render_hz, R))
     end
 
     if rt and #top > 0 then
-        a:append(GREY .. "самое дорогое:" .. R .. "\\N")
+        a:append(GREY .. "priciest passes:" .. R .. "\\N")
         for i = 1, math.min(3, #top) do
             if top[i].ms > 0.01 then
-                a:append(string.format("  %s%5.2f мс%s  %s\\N",
+                a:append(string.format("  %s%5.2f ms%s  %s\\N",
                     col(top[i].ms / budget), top[i].ms, R, top[i].desc:sub(1, 40)))
             end
         end
     end
 
-    -- ---------- поток ----------
+    -- ---------- stream ----------
     local drop    = num("frame-drop-count", 0)
     local ddrop   = num("decoder-frame-drop-count", 0)
     local delayed = num("vo-delayed-frame-count", 0)
 
-    a:append("\\N" .. CYAN .. "ПОТОК" .. R .. "\\N")
-    a:append(string.format("fps %.2f · %.1f Мбит/с · рассинхр %.3f с\\N",
+    a:append("\\N" .. CYAN .. "STREAM" .. R .. "\\N")
+    a:append(string.format("fps %.2f · %.1f Mbit/s · av-sync %.3f s\\N",
         num("estimated-vf-fps", 0), num("video-bitrate", 0) / 1e6, num("avsync", 0)))
-    a:append(string.format("дропы %s%d%s VO · %s%d%s декодер · задержки %s%d%s\\N",
+    a:append(string.format("drops %s%d%s VO · %s%d%s decoder · delayed %s%d%s\\N",
         drop > 0 and RED or GREEN, drop, R,
         ddrop > 0 and RED or GREEN, ddrop, R,
         delayed > 60 and YELLOW or GREY, delayed, R))
 
-    -- ---------- цепочка ----------
-    a:append("\\N" .. CYAN .. "ЦЕПОЧКА" .. R .. "\\N")
+    -- ---------- chain ----------
+    a:append("\\N" .. CYAN .. "CHAIN" .. R .. "\\N")
     local line = {}
     for _, k in ipairs({ "scale", "cscale", "dscale", "tscale" }) do
         local v = str(k, "?")
@@ -183,21 +183,21 @@ local function build()
     local vf, vfn = mp.get_property_native("vf") or {}, {}
     for _, f in ipairs(vf) do vfn[#vfn+1] = f.label or f.name end
 
-    a:append(string.format("дебанд %s · интерп. %s · шейдеры %s · фильтры %s\\N",
-        deband and (GREEN .. "вкл" .. R) or (GREY .. "выкл" .. R),
-        interp and (YELLOW .. "вкл " .. str("tscale", "") .. R) or (GREY .. "выкл" .. R),
-        #sh > 0 and (GREEN .. table.concat(sh, ",") .. R) or (GREY .. "нет" .. R),
-        #vfn > 0 and (GREEN .. table.concat(vfn, ",") .. R) or (GREY .. "нет" .. R)))
+    a:append(string.format("deband %s · interp %s · shaders %s · filters %s\\N",
+        deband and (GREEN .. "on" .. R) or (GREY .. "off" .. R),
+        interp and (YELLOW .. "on " .. str("tscale", "") .. R) or (GREY .. "off" .. R),
+        #sh > 0 and (GREEN .. table.concat(sh, ",") .. R) or (GREY .. "none" .. R),
+        #vfn > 0 and (GREEN .. table.concat(vfn, ",") .. R) or (GREY .. "none" .. R)))
 
-    -- ---------- режимы ----------
+    -- ---------- modes ----------
     local tp = mp.get_property("target-peak")
     local anti = tp and tp ~= "auto"
-    a:append("\\N" .. CYAN .. "РЕЖИМЫ" .. R .. "  "
+    a:append("\\N" .. CYAN .. "MODES" .. R .. "  "
         .. (nls and GREEN or GREY) .. "NLS" .. R .. "  "
-        .. (anti and GREEN or GREY) .. "антиблум" .. R
-        .. (anti and string.format(" (пик %s, контраст %s)", tp, str("target-contrast", "auto")) or "")
+        .. (anti and GREEN or GREY) .. "anti-bloom" .. R
+        .. (anti and string.format(" (peak %s, contrast %s)", tp, str("target-contrast", "auto")) or "")
         .. "\\N")
-    a:append(GREY .. "n NLS · A антиблум · S в SDR · 1-5 дебанд · r/u/e/8 нейро" .. R)
+    a:append(GREY .. "n NLS · A anti-bloom · S to SDR · 1-5 deband" .. R)
 
     return a.text
 end

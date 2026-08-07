@@ -1,5 +1,7 @@
 -- gui.lua — on-screen menu: every mode as a button, driven by the mouse.
 -- Open: right-click the picture, or press m.
+-- (Distribution build: the NEURAL group is omitted — RIFE/AnimeJaNai need
+--  VapourSynth plugins and multi-GB TensorRT engines that ship separately.)
 -- Close: right-click, m, Esc, or click outside the panel.
 --
 -- Why, on top of hotkeys: two dozen keys have piled up, and nobody keeps that
@@ -111,16 +113,6 @@ local BUTTONS = {
   { label = "off", key = "0", on = function() return deband_level()==nil end,
     act = function() mp.set_property_bool("deband", false) end },
 
-  { grp = "NEURAL" },
-  { label = "RIFE: smoothness", key = "r", on = function() return cur_vpy()=="rife" end,
-    act = function() mp.commandv("script-binding","smart-rife") end },
-  { label = "anime upscale", key = "u", on = function() return cur_vpy()=="janai" end,
-    act = function() mp.commandv("script-binding","smart-upscale") end },
-  { label = "Envy: all in one", key = "e", on = function() return cur_vpy()=="envy" end,
-    act = function() mp.commandv("script-binding","smart-envy") end },
-  { label = "upscale to 8K", key = "8", on = function() return cur_vpy()=="janai8k" end,
-    act = function() mp.commandv("script-binding","smart-8k") end },
-
   { grp = "DIAGNOSTICS" },
   { label = "metrics console", key = "F1",
     act = function() mp.commandv("script-binding","console-toggle") end },
@@ -129,10 +121,10 @@ local BUTTONS = {
 }
 
 -- ---------- rounded rectangle ----------
--- ⚠ Оплачено отладкой: assdraw МАСШТАБИРУЕТ координаты (на 2^(scale-1), по
--- умолчанию это ×8). Писать "m x y l x y" руками через append нельзя — фигура
--- схлопнется в угол экрана. Только через методы move_to / line_to /
--- bezier_curve, они умножают сами.
+-- ⚠ Paid for in debugging: assdraw SCALES coordinates (by 2^(scale-1), ×8 by
+-- default). Appending "m x y l x y" by hand collapses the shape into the
+-- corner of the screen. Use only move_to / line_to / bezier_curve — those
+-- apply the multiplier themselves.
 local function rrect(a, x, y, w, h, r)
     r = math.min(r, math.floor(w / 2), math.floor(h / 2))
     local x2, y2 = x + w, y + h
