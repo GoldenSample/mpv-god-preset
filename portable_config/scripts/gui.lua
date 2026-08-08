@@ -118,6 +118,8 @@ local BUTTONS = {
     act = function() mp.commandv("script-binding","smart-upscale") end },
   { label = "Envy: all in one", key = "e", on = function() return cur_vpy()=="envy" end,
     act = function() mp.commandv("script-binding","smart-envy") end },
+  { label = "live-action upscale", key = "L", on = function() return cur_vpy()=="liveaction" end,
+    act = function() mp.commandv("script-binding","smart-liveaction") end },
   { label = "upscale to 8K", key = "8", on = function() return cur_vpy()=="janai8k" end,
     act = function() mp.commandv("script-binding","smart-8k") end },
 

@@ -3,7 +3,7 @@
 -- поэтому HDR-гейт живёт здесь, где mpv знает gamma до фильтра.
 -- Кнопки эксклюзивны: включение режима снимает другие, складывать нельзя.
 
-local VPYS = { "rife.vpy", "janai.vpy", "envy.vpy", "janai8k.vpy" }
+local VPYS = { "rife.vpy", "janai.vpy", "envy.vpy", "janai8k.vpy", "liveaction.vpy" }
 
 local function is_hdr()
     local g = mp.get_property("video-params/gamma", "")
@@ -70,6 +70,14 @@ mp.add_key_binding("u", "smart-upscale", function()
         return
     end
     switch_to("janai.vpy", "Апскейл AnimeJaNai")
+end)
+
+mp.add_key_binding("L", "smart-liveaction", function()
+    if is_hdr() then
+        mp.osd_message("HDR-контент: модель live-action обучена на SDR, апскейл пропущен")
+        return
+    end
+    switch_to("liveaction.vpy", "Апскейл live-action")
 end)
 
 mp.add_key_binding("e", "smart-envy", function()
