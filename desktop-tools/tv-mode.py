@@ -11,11 +11,16 @@
 #   floor-bottom (DOWN x12) = FILMMAKER MODE
 #   Стандартный = floor-bottom + UP x3
 #   Местное затемнение (Advanced): floor-bottom (DOWN x22) + UP x7
-import ssl, json, base64, time, subprocess, sys
+import os, ssl, json, base64, time, subprocess, sys
 
-TV_IP = "192.168.1.65"
-TOKEN_FILE = r"C:\Users\Administrator\AppData\Local\laplace-sandbox\secrets\TIZEN_WS_TOKEN.txt"
-SETDISPLAY = r"C:\Apps\display-mode\SetDisplay.exe"
+# Per-machine settings come from the environment, nothing personal lives in the repo:
+#   TIZEN_TV_IP       address of the TV on your LAN (required)
+#   TIZEN_TOKEN_FILE  text file with the Tizen remote token (default: tizen_token.txt next to this script)
+#   SETDISPLAY_EXE    path to SetDisplay.exe (default: SetDisplay.exe next to this script)
+HERE = os.path.dirname(os.path.abspath(__file__))
+TV_IP = os.environ.get("TIZEN_TV_IP", "")
+TOKEN_FILE = os.environ.get("TIZEN_TOKEN_FILE", os.path.join(HERE, "tizen_token.txt"))
+SETDISPLAY = os.environ.get("SETDISPLAY_EXE", os.path.join(HERE, "SetDisplay.exe"))
 
 
 def remote():
@@ -84,6 +89,8 @@ def set_local_dimming(ws, target):
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "pcinput"
+    if not TV_IP:
+        sys.exit("Set TIZEN_TV_IP to the address of your TV (see the header of this file).")
     plan = {
         "cinema8k60": {"disp": ["7680", "4320", "60"], "dim": "high", "pic": "filmmaker"},
         "cinema8k24": {"disp": ["7680", "4320", "24"], "dim": "high", "pic": "filmmaker"},
